@@ -19,6 +19,14 @@
     background-color: #0c0d12;
     color: #f8fafc;
     font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* GPU Compositing for smooth scrolling */
+  * {
+    -webkit-tap-highlight-color: transparent;
   }
 
   ::selection {

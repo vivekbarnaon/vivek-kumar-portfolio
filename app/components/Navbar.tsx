@@ -30,31 +30,40 @@ export default function Navbar() {
   ];
 
   useEffect(() => {
+    let rafId: number;
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 25);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        setScrolled(scrollY > 25);
 
-      const sections = ["skills", "experience", "projects", "credentials", "contact"];
-      const scrollPosition = window.scrollY + 200;
+        const sections = ["skills", "experience", "projects", "credentials", "contact"];
+        const scrollPosition = scrollY + 200;
 
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(sectionId);
-            return;
+        for (const sectionId of sections) {
+          const el = document.getElementById(sectionId);
+          if (el) {
+            const top = el.offsetTop;
+            const height = el.offsetHeight;
+            if (scrollPosition >= top && scrollPosition < top + height) {
+              setActiveSection(sectionId);
+              return;
+            }
           }
         }
-      }
-      if (window.scrollY < 300) {
-        setActiveSection("hero");
-      }
+        if (scrollY < 300) {
+          setActiveSection("hero");
+        }
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (

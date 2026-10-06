@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-sketch: #0c0d12;
+    --bg-card: #13141f;
+    --sketch-border: rgba(255, 255, 255, 0.12);
+    --sketch-highlight: #6366f1;
+    --sketch-cyan: #38bdf8;
+    --sketch-amber: #fbbf24;
+    --sketch-emerald: #34d399;
+    --sketch-rose: #f43f5e;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: #0c0d12;
+    color: #f8fafc;
+    font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  ::selection {
+    background-color: #6366f1;
+    color: #ffffff;
+  }
+}
+
+/* Sketch Paper & Grid Backgrounds */
+.sketch-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+}
+
+.sketch-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Hand-drawn Sketch Border & Paper Aesthetics */
+.sketch-border {
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px 16px 14px 18px / 16px 14px 18px 12px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sketch-border:hover {
+  border-color: rgba(99, 102, 241, 0.6);
+  border-radius: 16px 12px 18px 14px / 14px 18px 12px 16px;
+  box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.25), 0 0 1px 1px rgba(99, 102, 241, 0.4);
+}
+
+.sketch-card {
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.03), transparent 70%), #12131d;
+  position: relative;
+}
+
+/* Marker / Highlighter Underline Effect */
+.marker-highlight {
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+}
+
+.marker-highlight::before {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: -4px;
+  right: -4px;
+  height: 38%;
+  background: rgba(99, 102, 241, 0.35);
+  border-radius: 4px;
+  z-index: -1;
+  transform: rotate(-1deg);
+}
+
+.marker-cyan::before {
+  background: rgba(56, 189, 248, 0.35);
+  transform: rotate(0.8deg);
+}
+
+.marker-amber::before {
+  background: rgba(251, 191, 36, 0.3);
+  transform: rotate(-0.5deg);
+}
+
+/* Sketch Tape Accent */
+.sketch-tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1.5deg);
+  width: 70px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border-left: 1px dashed rgba(255, 255, 255, 0.2);
+  border-right: 1px dashed rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+/* Hand-drawn wobbly line effect */
+.wobble-hover:hover {
+  animation: wobble-anim 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes wobble-anim {
+  0% { transform: rotate(-0.5deg) translateY(-1px); }
+  100% { transform: rotate(0.5deg) translateY(1px); }
+}
+
+/* Pencil Glow Tokens */
+.glow-indigo {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+}
+
+/* Paper Grain Texture Overlay */
+.paper-grain {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 8px 8px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0c0d12;
+}
+::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}

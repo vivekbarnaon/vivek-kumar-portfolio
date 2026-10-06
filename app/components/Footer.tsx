@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
   FileText,
@@ -16,7 +16,8 @@ import {
   Pencil,
   ExternalLink,
   Zap,
-  Flame
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 
 function GithubIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -47,10 +48,14 @@ export default function Footer() {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState("opportunity");
   const [senderName, setSenderName] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
   const [message, setMessage] = useState("");
   const [localTime, setLocalTime] = useState("");
 
-  const emailAddress = "vivek.work018@gmail.com";
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [statusMessage, setStatusMessage] = useState("");
+
+  const emailAddress = "vivekbarnaon@gmail.com";
   const linkedInUrl = "https://www.linkedin.com/in/vivek-kumar-b04874289";
   const githubUrl = "https://github.com/vivekbarnaon";
   const youtubeUrl = "https://www.youtube.com/@TechVivek018";
@@ -80,13 +85,57 @@ export default function Footer() {
     setTimeout(() => setCopiedEmail(false), 2500);
   };
 
-  const handleQuickDispatch = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!senderEmail || !message) {
+      setStatus("error");
+      setStatusMessage("Please provide your email and message.");
+      return;
+    }
+
+    setStatus("sending");
+    setStatusMessage("Dispatching via Resend...");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: senderName,
+          email: senderEmail,
+          topic: selectedTopic,
+          message: message
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setStatus("success");
+        setStatusMessage("Message dispatched successfully! Vivek will get back to you shortly.");
+        setMessage("");
+        setSenderName("");
+        setSenderEmail("");
+      } else {
+        // If Resend key is not configured yet or errored, offer easy native mail client fallback
+        setStatus("error");
+        setStatusMessage(
+          data.error || "Could not dispatch via Resend API. Click below to open your mail app directly."
+        );
+      }
+    } catch (err: any) {
+      setStatus("error");
+      setStatusMessage("Network error. Click below to send via your mail client.");
+    }
+  };
+
+  const handleNativeMailFallback = () => {
     const subject = encodeURIComponent(
       `[Portfolio Inquiry] ${selectedTopic.toUpperCase()}: From ${senderName || "Visitor"}`
     );
     const body = encodeURIComponent(
-      `Hi Vivek,\n\n${message || "I saw your portfolio and would love to connect."}\n\nBest regards,\n${senderName || "A Collaborator"}`
+      `Hi Vivek,\n\n${message || "I saw your portfolio and would love to connect."}\n\nBest regards,\n${senderName || "A Collaborator"}\n${senderEmail || ""}`
     );
     window.location.href = `mailto:${emailAddress}?subject=${subject}&body=${body}`;
   };
@@ -118,7 +167,7 @@ export default function Footer() {
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs">
             <Pencil className="w-3.5 h-3.5 text-indigo-400" />
-            <span>COMMUNICATION DESK // GET IN TOUCH</span>
+            <span>COMMUNICATION DESK // POWERED BY RESEND</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
@@ -126,13 +175,13 @@ export default function Footer() {
           </h2>
 
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Have an open software role, machine learning initiative, or research opportunity? Dispatch a direct note or connect across my channels below.
+            Have an open software engineering position, machine learning initiative, or research opportunity? Send a direct message below.
           </p>
         </motion.div>
 
         {/* 2-Column Creative Interactive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Interactive Fast Dispatch Terminal */}
+          {/* Left Column: Direct Resend Dispatch Console */}
           <motion.div
             initial={{ opacity: 0, x: -25 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -148,13 +197,13 @@ export default function Footer() {
                   <MessageSquareCode className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Direct Dispatch Console</h3>
-                  <span className="text-[11px] text-slate-400">Generates pre-formatted email prompt</span>
+                  <h3 className="text-lg font-bold text-white">Direct Message Dispatcher</h3>
+                  <span className="text-[11px] text-slate-400">Powered by Resend Email API</span>
                 </div>
               </div>
               <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                STATUS: ACTIVE
+                RESEND_READY
               </span>
             </div>
 
@@ -169,7 +218,7 @@ export default function Footer() {
                     key={topic.id}
                     type="button"
                     onClick={() => setSelectedTopic(topic.id)}
-                    className={`px-3 py-2.5 rounded-xl border text-xs font-mono transition-all text-left flex items-center justify-between ${
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-mono transition-all text-left flex items-center justify-between cursor-pointer ${
                       selectedTopic === topic.id
                         ? "border-indigo-400 bg-indigo-500/20 text-white shadow-[0_0_15px_rgba(99,102,241,0.25)]"
                         : "border-white/10 bg-[#0c0d12] text-slate-400 hover:border-white/20 hover:text-slate-200"
@@ -182,26 +231,43 @@ export default function Footer() {
               </div>
 
               {/* Form Inputs */}
-              <form onSubmit={handleQuickDispatch} className="space-y-4 pt-2">
-                <div>
-                  <label className="text-xs text-slate-300 font-semibold block mb-1.5">
-                    Your Name / Organization:
-                  </label>
-                  <input
-                    type="text"
-                    value={senderName}
-                    onChange={(e) => setSenderName(e.target.value)}
-                    placeholder="e.g. Hiring Team / Collaborator"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0c0d12] border border-white/10 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-400 transition-colors"
-                  />
+              <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-300 font-semibold block mb-1.5">
+                      Your Name:
+                    </label>
+                    <input
+                      type="text"
+                      value={senderName}
+                      onChange={(e) => setSenderName(e.target.value)}
+                      placeholder="e.g. Hiring Lead / Recruiter"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#0c0d12] border border-white/10 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-400 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-slate-300 font-semibold block mb-1.5">
+                      Your Email (for reply) <span className="text-rose-400">*</span>:
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={senderEmail}
+                      onChange={(e) => setSenderEmail(e.target.value)}
+                      placeholder="e.g. recruiter@company.com"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#0c0d12] border border-white/10 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-400 transition-colors"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="text-xs text-slate-300 font-semibold block mb-1.5">
-                    Message / Brief:
+                    Message / Project Details <span className="text-rose-400">*</span>:
                   </label>
                   <textarea
                     rows={3}
+                    required
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder={
@@ -212,17 +278,63 @@ export default function Footer() {
                   />
                 </div>
 
+                {/* Status Feedback Banner */}
+                <AnimatePresence>
+                  {status === "success" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2"
+                    >
+                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>{statusMessage}</span>
+                    </motion.div>
+                  )}
+
+                  {status === "error" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <span>{statusMessage}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleNativeMailFallback}
+                        className="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500 hover:text-white border border-rose-500/40 text-rose-200 transition-colors text-[11px] font-bold self-start sm:self-auto cursor-pointer"
+                      >
+                        Open Mail App ↗
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                   <span className="text-[11px] text-slate-400 text-center sm:text-left">
-                    ✎ Formats a mailto prompt for your native mail app
+                    ✎ Dispatches directly to {emailAddress}
                   </span>
 
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.4)] group cursor-pointer"
+                    disabled={status === "sending"}
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.4)] group cursor-pointer"
                   >
-                    <span>Launch Mail Draft</span>
-                    <Send className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    {status === "sending" ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Dispatching...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Send Message ⚡</span>
+                        <Send className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
